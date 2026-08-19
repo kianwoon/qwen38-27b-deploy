@@ -32,9 +32,10 @@ start)  # fastest path — same pod, host may still have GPU + image
 rebuild)  # fresh pod from template + volume (weights stay cached)
   PROFILE="${2:-5090}"
   case "$PROFILE" in
-    5090) TEMPLATE_ID="$TPL_5090"; GPU_ID="$GPU_5090"; NAME="qwen38-5090-llamacpp";     DISK=20 ;;
-    6000) TEMPLATE_ID="$TPL_6000"; GPU_ID="$GPU_6000"; NAME="qwen38-6000-sglang-dflash"; DISK=40 ;;
-    *) echo "unknown profile: $PROFILE (use 5090|6000)"; exit 1 ;;
+    5090)         TEMPLATE_ID="$TPL_5090";        GPU_ID="$GPU_5090"; NAME="qwen38-5090-llamacpp";     DISK=20 ;;
+    5090-sglang)  TEMPLATE_ID="$TPL_5090_SGLANG"; GPU_ID="$GPU_5090"; NAME="qwen38-5090-sglang-dflash"; DISK=40 ;;
+    6000)         TEMPLATE_ID="$TPL_6000";        GPU_ID="$GPU_6000"; NAME="qwen38-6000-sglang-dflash"; DISK=40 ;;
+    *) echo "unknown profile: $PROFILE (use 5090|5090-sglang|6000)"; exit 1 ;;
   esac
   BOLD "Rebuilding [$PROFILE] — template $TEMPLATE_ID on $GPU_ID"
   BOLD "Deleting old pod $POD_ID..."

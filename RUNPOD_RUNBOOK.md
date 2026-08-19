@@ -1,26 +1,28 @@
-# RunPod Runbook — Qwen3.8-27B (dual GPU profiles)
+# RunPod Runbook — Qwen3.8-27B (three profiles)
 
-## Two templates, two profiles
+## Three profiles
 
-| | **5090** (default) | **6000 Pro** |
-|---|---|---|
-| Engine | llama.cpp | SGLang |
-| Weights | Q5_K_M (18.46GB) | NVFP4 + DFlash 2 draft (3.6GB) |
-| Vision (mmproj) | ✅ `--mmproj` | ✅ built-in |
-| Speed | ~67 tok/s · 3,600 tok/s prefill | **~145-193 tok/s** @ 110k (DFlash 2 block 5) |
-| Concurrency | 4 slots | many (derived from ratio 0.5) |
-| Context | 256k (q8_0 KV) | 262k (fp8 KV) |
-| Cost | $0.99/hr | $2.09/hr |
-| Template | `nvjvyo9up8` | `bjfq916cjh` |
-| Rebuild | `./pod.sh rebuild 5090` | `./pod.sh rebuild 6000` |
+| | **5090** (default) | **5090 SGLang** | **6000 Pro** |
+|---|---|---|---|
+| Engine | llama.cpp | SGLang | SGLang |
+| Weights | Q5_K_M (18.46GB) | NVFP4 + DFlash 2 draft (3.6GB) | NVFP4 + DFlash 2 draft (3.6GB) |
+| Vision (mmproj) | ✅ `--mmproj` | ✅ built-in | ✅ built-in |
+| Speed | ~67 tok/s · 3,600 tok/s prefill | ~135-184 tok/s (32GB, DFlash 2) | **~145-193 tok/s** @ 110k (DFlash 2 block 5) |
+| Concurrency | 4 slots | 1-2 (32GB GDN state pool) | many (derived from ratio 0.5) |
+| Context | 256k (q8_0 KV) | ~110k max (32GB) | 262k (fp8 KV) |
+| Cost | $0.99/hr | $0.99/hr | $2.09/hr |
+| Template | `nvjvyo9up8` | `r05rilzsu8` | `bjfq916cjh` |
+| Rebuild | `./pod.sh rebuild 5090` | `./pod.sh rebuild 5090-sglang` | `./pod.sh rebuild 6000` |
 
-Both share the same volume (`1xyrwr7b04` — has ALL weight sets cached) and the same
-API key / OpenCode provider. Switching GPUs = one rebuild command.
+All three share the same volume (`1xyrwr7b04` — has ALL weight sets cached) and the same
+API key / OpenCode provider. Switching profiles = one rebuild command.
 
-**Note:** 256k context is a 5090-llama.cpp / 6000-SGLang thing. A 5090 SGLang+DFlash2
-profile was tried and deleted (32GB caps at ~110k; not worth the profile). If you ever
-want DFlash 2 on 5090 again: SGLang image + `--mamba-full-memory-ratio 0.3` +
-`--chunked-prefill-size 2048` + block 5 + pinned SHA `25c15d74`.
+**5090 SGLang tuning (32GB):** `--mamba-full-memory-ratio 0.3` (not 0.5 — GDN state
+pool is the binding constraint on 32GB; 0.3 leaves room for KV up to ~110k ctx).
+`--chunked-prefill-size 2048` (SM120 cards want small chunks; 8192 stalls decode
+~600ms/chunk). Same DFlash 2 drafter + block 5 + pinned SHA `25c15d74` + hardened
+onstart as the 6000 profile. 256k context is NOT available on 32GB SGLang — use the
+llama.cpp 5090 profile for that.
 
 ## Daily operations
 
@@ -40,6 +42,7 @@ If `start` shows the RunPod "GPUs no longer available" dialog in the console →
 |---|---|---|
 | `1xyrwr7b04` | Volume (EU-RO-1, 50GB) | Q5_K_M + mmproj + NVFP4 + DSpark + DFlash2 weights. Survives everything. **Never delete.** |
 | `nvjvyo9up8` | Template `qwen38-5090-llamacpp-v15` | The working llama.cpp recipe (rolling `full-cuda` image). 1-command rebuild. |
+| `r05rilzsu8` | Template `qwen38-5090-sglang-dflash2` | SGLang NVFP4 + DFlash 2, 32GB-tuned (ratio 0.3, chunk 2048, block 5, hardened onstart). `./pod.sh rebuild 5090-sglang`. |
 | `bjfq916cjh` | Template `qwen38-6000pro-sglang-dflash2` | SGLang NVFP4 + DFlash 2 (block 5, ratio 0.5, chunk 2048, hardened onstart: pip retry + import guard + weight pre-download + restart loop). `./pod.sh rebuild 6000`. |
 
 Pod IDs change on rebuild — `pod.sh` keeps `.env.runpod` + `opencode.json` in sync automatically
