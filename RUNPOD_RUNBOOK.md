@@ -102,6 +102,12 @@ Restart: `ssh … 'nohup bash /root/restart.sh >> /root/sglang.log 2>&1 &'` — 
 
 **Status:** LIVE. DFlash 2 is the default spec method on both vast + RunPod.
 
+### Templates
+| Platform | 6000 profile | 5090 profile |
+|---|---|---|
+| vast.ai | `567382` (hash `ad8ca71d`, 96GB-tuned: ratio 0.5, chunk 8192) | `572554` (hash `742c3ba2`, 32GB-tuned: ratio 0.3, chunk 2048) |
+| RunPod | `bjfq916cjh` | `r05rilzsu8` |
+
 ### SGLang build requirement
 
 The pinned `lmsysorg/sglang:qwen38-27b` image predates DFlash2. Both templates
