@@ -75,7 +75,7 @@ Image input is enabled. Thinking lands in `reasoning_content` (collapsible in Op
 | | |
 |---|---|
 | Instance | `48099702` · RTX PRO 6000 WS · **$1.27/hr** (instance ID changes on re-rent; see `.env.runpod`) |
-| Template | `567382` · hash `6bf4ab8ebad02a246ace6544f5e174c7` (ssh, `lmsysorg/sglang:qwen38-27b`, 60GB — onstart = **DFlash 2** + auto pip-install SGLang from **pinned commit SHA** `25c15d74` (PR #35462 head) + weight pre-download + retry loops + server restart loop, hardened 2026-08-19; **re-fetch hash after every update**) |
+| Template | `567382` · hash `ad8ca71de01e4ce7b220ad162b6340cb` (ssh, `lmsysorg/sglang:qwen38-27b`, 60GB — onstart = **DFlash 2** + auto pip-install SGLang from **pinned commit SHA** `25c15d74` (PR #35462 head) + weight pre-download + retry loops + server restart loop, hardened 2026-08-19; outer log redirect is APPEND (`>>`) so early `[onstart]` markers survive; **re-fetch hash after every update**) |
 | Access | **SSH tunnel only** (ports don't map on vast ssh instances): see `VAST_TUNNEL` in `.env.runpod` |
 | OpenCode | provider `qwen38-vast` → `http://localhost:30000/v1` (tunnel must be up) |
 | Vision | ✅ end-to-end verified (image_tokens: 72). Requires: `modalities.input: [text,image]` in opencode.json (NOT capabilities), image-to-text.js plugin allowlists provider, zai vision MCP disabled for qwen agents |
@@ -141,10 +141,13 @@ Re-check: `curl -s https://api.github.com/repos/sgl-project/sglang/pulls/32052 |
 ### Current live instance
 
 - vast `48099702` · ssh3.vast.ai:19702 · $1.07/hr · RTX PRO 6000 WS
-- Template `567382` hash `6bf4ab8e` — self-installing, hardened onstart:
+- Template `567382` hash `ad8ca71d` — self-installing, hardened onstart:
   pip retry (5×) → import guard → weight pre-download (3×) → server restart loop (5×)
-  → all logged to `/root/sglang.log`
+  → all logged to `/root/sglang.log` (outer redirect APPEND `>>` — early markers survive)
 - First boot: ~10-15 min (pip ~3 min + weights if host lacks cache)
+- **Fresh-boot verified 2026-08-19**: instance 48105680 rented from this template,
+  booted clean end-to-end (pinned build g25c15d748, DFLASH+block5, 0 errors,
+  health 200, inference returned expected output).
 
 ## vast.ai instance-creation pitfalls (2026-08-19 saga — 5 failures, 3 causes)
 
