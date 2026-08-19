@@ -107,6 +107,19 @@ The pinned `lmsysorg/sglang:qwen38-27b` image predates DFlash2. Both templates
 lm_head fix) at boot. **Never use `refs/pull/N/head`** — it's a moving ref
 deleted on merge (time bomb). The SHA stays valid after merge.
 
+### Open PRs affecting this stack (watchlist, checked 2026-08-19)
+
+| PR | What | Verdict |
+|---|---|---|
+| **#32052** | GDN recurrent-state commit + `extra_buffer` radix (our exact config) | **Watch.** Bug: cached radix prefixes can carry recurrent state from a different sequence position → prefix-reuse output differs from full prefill (subtle quality/determinism drift, no crash). Unmerged, CI gated, author validation = compile-only. **When it merges: bump both templates' pin to the new main.** Mitigation if needed: `--disable-radix-cache` (loses prefix-cache speedup, ~10-20s re-prefill/turn at 40-60k) |
+| #35208 | SWA verify window (sliding-window targets) | N/A — Qwen3.8-27B has `sliding_window: None` (GDN hybrid, no SWA layers) |
+| #33531 / #33869 | additive penalties in verify | N/A — no penalties in use |
+| #33614 | TP-rank state divergence | N/A — TP=1 |
+| #35209 | reject trtllm_mha for DFlash | N/A — flashinfer backend |
+| #30119 | modelopt_mixed draft crash | N/A — draft runs unquantized |
+
+Re-check: `curl -s https://api.github.com/repos/sgl-project/sglang/pulls/32052 | jq .merged_at`
+
 ### Tuning
 
 | Knob | Value | Why |
