@@ -40,7 +40,7 @@ while [ $RESTARTS -lt 5 ]; do
   RC=$?; RESTARTS=$((RESTARTS+1)); echo "[onstart] server exited rc=$RC - restart $RESTARTS/5" >> $LOG; sleep 15
 done
 echo "[onstart] giving up after 5 restarts" >> $LOG
-' > /root/sglang.log 2>&1 &
+' >> /root/sglang.log 2>&1 &
 ```
 
 ## Notes
